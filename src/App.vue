@@ -1,28 +1,53 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <el-menu v-if="$store.state.loggedIn" :default-active="activeIndex" class="el-menu" mode="horizontal" @select="onMenuSelected">
+      <el-menu-item index="1">区块链金融平台</el-menu-item>
+      <el-menu-item index="2">采购</el-menu-item>
+      <el-menu-item index="3">结算</el-menu-item>
+      <el-menu-item index="4">转让</el-menu-item>
+      <el-menu-item index="5">贴现</el-menu-item>
+    </el-menu>
+    <router-view />
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+const path_router_pair = {
+  '1': '/',
+  '2': '/purchase',
+  '3': '/settle',
+  '4': '/transfer',
+  '5': '/discount'
+};
 
 export default {
   name: 'app',
   components: {
-    HelloWorld
+
+  },
+  data() {
+    return {
+      activeIndex: '1'
+    }
+  },
+  methods: {
+    onMenuSelected(key) {
+      this.$router.push({ path: path_router_pair[key] }).then((() => {
+        if (this.$route.fullPath === '/login') {
+          this.activeIndex = '1';
+        }
+      }));
+    }
   }
 }
 </script>
 
 <style>
-#app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
+  .el-header {
+    margin-top: 20px;
+  }
+
+  .el-col {
+    display: inline;
+  }
 </style>
