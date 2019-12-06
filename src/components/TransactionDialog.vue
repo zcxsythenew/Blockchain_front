@@ -54,7 +54,7 @@
                         this.loading = false;
                         if (result['message'] === 'success') {
                             this.$message('交易ID：' + this.transaction.id + '，结算成功');
-                            this.visible = false;
+                            // this.visible = false;
                             this.hide();
                         } else {
                             this.$alert('交易ID：' + this.transaction.id + '，结算失败，原因：' + result);
@@ -76,7 +76,7 @@
                         this.loading = false;
                         if (result['message'] === 'success') {
                             this.$message('交易ID：' + this.transaction.id + '，贴现成功');
-                            this.visible = false;
+                            // this.visible = false;
                             this.hide();
                         } else {
                             this.$alert('交易ID：' + this.transaction.id + '，贴现失败，原因：' + result);
