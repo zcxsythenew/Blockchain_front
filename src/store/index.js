@@ -5,14 +5,18 @@ Vue.use(Vuex);
 
 const store = new Vuex.Store({
     state: {
-        username: '',
+        address: '',
         privateKey: '',
+        publicKey: '',
+        admin: false,
         loggedIn: false
     },
     mutations: {
         login (state, payload) {
-            state.username = payload.username;
+            state.address = payload.address;
             state.privateKey = payload.privateKey;
+            state.publicKey = payload.publicKey;
+            state.admin = payload.admin;
             state.loggedIn = true;
         }
     }

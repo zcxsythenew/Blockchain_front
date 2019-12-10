@@ -15,10 +15,12 @@
                 <el-table-column sortable prop="obligor"
                                  :filters="obligorFilter"
                                  :filter-method="generalFilterHandler"
+                                 :formatter="formatObligor"
                                  label="原债务人" />
                 <el-table-column sortable prop="obligee"
                                  :filters="obligeeFilter"
                                  :filter-method="generalFilterHandler"
+                                 :formatter="formatObligee"
                                  label="原债权人" />
                 <el-table-column sortable prop="amount" label="金额" />
                 <el-table-column sortable
@@ -59,8 +61,12 @@
         beforeRouteEnter(to, from, next) {
             next(vm => {
                 transactions().then(result => {
-                    vm.tableLoading = false;
-                    vm.tableData = result;
+                    if (result["message"] === "success") {
+                        vm.tableLoading = false;
+                        vm.tableData = result["data"];
+                    } else {
+                        vm.$alert(result["message"]);
+                    }
                 }).catch(reason => {
                     vm.$alert(reason);
                 })
@@ -69,6 +75,18 @@
         methods: {
             formatTableTime(row, column) {
                 return formatDate(row[column.property]);
+            },
+            formatObligor(row) {
+                if (row['obligorNickname']) {
+                    return row['obligorNickname'];
+                }
+                return row['obligor'];
+            },
+            formatObligee(row) {
+                if (row['obligeeNickname']) {
+                    return row['obligeeNickname'];
+                }
+                return row['obligee'];
             },
             formatTableStatus(row) {
                 return formatStatus(row);

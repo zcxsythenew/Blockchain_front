@@ -39,11 +39,11 @@
         <el-main>
             <el-table :data="previousTableData" v-loading="previousTableDataLoading">
                 <el-table-column sortable
-                                 prop="settleDatetime"
+                                 prop="datetime"
                                  :filters="previousDateTableFilter"
                                  :formatter="formatTableTime"
                                  :filter-method="dateFilterHandler"
-                                 label="结算时间"
+                                 label="交易时间"
                                  width="120"/>
                 <el-table-column sortable
                                  :sort-method="obligorSortMethod"
@@ -93,14 +93,22 @@
         beforeRouteEnter(to, from, next) {
             next(vm => {
                 getSettle().then(result => {
-                    vm.tableLoading = false;
-                    vm.tableData = result;
+                    if (result["message"] === "success") {
+                        vm.tableLoading = false;
+                        vm.tableData = result["data"];
+                    } else {
+                        vm.$alert(result["message"]);
+                    }
                 }).catch(reason => {
                     vm.$alert(reason);
                 });
                 getPreviousSettles().then(result => {
-                    vm.previousTableDataLoading = false;
-                    vm.previousTableData = result;
+                    if (result["message"] === "success") {
+                        vm.previousTableDataLoading = false;
+                        vm.previousTableData = result["data"];
+                    } else {
+                        vm.$alert(result["message"]);
+                    }
                 }).catch(reason => {
                     vm.$alert(reason);
                 });
@@ -114,8 +122,18 @@
                 return formatStatus(row);
             },
             formatObligor(row) {
-                if (row['transfer'] === 1) return row['transferTo'];
-                else return row['obligor'];
+                if (row['transfer'] === 1) {
+                    if (row['transferToNickname']) {
+                        return row['transferToNickname'];
+                    }
+                    return row['transferTo'];
+                }
+                else {
+                    if (row['obligorNickname']) {
+                        return row['obligorNickname'];
+                    }
+                    return row['obligor'];
+                }
             },
             dateFilterHandler(value, row, column) {
                 const date1 = new Date(row[column.property]);
@@ -177,7 +195,7 @@
                 return dateFilter(this.tableData);
             },
             previousDateTableFilter() {
-                return dateFilter(this.previousTableData, 'settleDatetime');
+                return dateFilter(this.previousTableData);
             },
             statusFilter() {
                 return statusList;

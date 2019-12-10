@@ -5,8 +5,21 @@ export function login(form) {
         method: 'post',
         url: '/login',
         data: {
-            username: form.username,
             privateKey: form.privateKey
         }
+    })
+}
+
+export function signIn() {
+    return request({
+        method: 'get',
+        url: '/signin',
+    })
+}
+
+export function shiftDatabase() {
+    return request({
+        method: 'get',
+        url: '/shift'
     })
 }

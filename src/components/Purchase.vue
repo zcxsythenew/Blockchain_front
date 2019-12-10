@@ -15,11 +15,11 @@
                                    v-loading="nicknameLoading"
                         style="width: 60%">
                             <el-option v-for="item in nicknames"
-                                       :key="item.username"
-                                       :value="item.username"
+                                       :key="item.address"
+                                       :value="item.address"
                                        :label="item.nickname">
                                 <span style="float: left">{{ item.nickname }}</span>
-                                <span style="float: right; color: #8492a6; font-size: 13px">{{ item.username }}</span>
+                                <span style="float: right; color: #8492a6; font-size: 13px">{{ item.address }}</span>
                             </el-option>
                         </el-select>
                         <div style="display: inline; margin-left: 20px">
@@ -41,6 +41,7 @@
                     <el-button type="primary"
                                @click="createTransaction"
                                v-loading.fullscreen.lock="loading">创建交易</el-button>
+                    <el-button type="text" @click="cryptNote">加密备注信息</el-button>
                 </el-form-item>
             </el-form>
         </el-main>
@@ -50,8 +51,8 @@
                 <el-form-item label="名称">
                     <el-input v-model="newNickname.nickname" />
                 </el-form-item>
-                <el-form-item label="公钥地址">
-                    <el-input v-model="newNickname.username" />
+                <el-form-item label="地址">
+                    <el-input v-model="newNickname.address" />
                 </el-form-item>
                 <el-form-item>
                     <el-button type="primary"
@@ -66,6 +67,7 @@
 <script>
     import {purchase} from '@/api/purchase'
     import {addNickname, getNicknames} from "@/api/nickname";
+    import crypt from "@/crypt/crypt";
     export default {
         name: "Purchase",
         data() {
@@ -81,7 +83,7 @@
                 nicknames: [],
                 newNickname: {
                     nickname: '',
-                    username: ''
+                    address: ''
                 },
                 dialogVisible: false
             }
@@ -90,7 +92,11 @@
             next(vm => {
                 getNicknames().then(result => {
                     vm.nicknameLoading = false;
-                    vm.nicknames = result;
+                    if (result["message"] === "success") {
+                        vm.nicknames = result["data"];
+                    } else {
+                        vm.$alert(result["message"]);
+                    }
                 }).catch(reason => {
                     vm.$alert(reason);
                 })
@@ -113,27 +119,41 @@
                         if (result['message'] === 'success') {
                             this.$message('交易发起成功');
                         } else {
-                            this.$alert('交易发起失败，原因：' + result);
+                            this.$alert('交易发起失败，原因：' + result['message']);
                         }
                     }).catch(reason => {
                         this.loading = false;
                         this.$alert(reason);
                     });
-                })
+                }).catch(() => {});
             },
             createNickname() {
+                if (this.newNickname.nickname === '' || this.newNickname.address === '') {
+                    this.$alert('请填写名称和地址');
+                    return;
+                }
                 this.loading = true;
                 addNickname(this.newNickname).then(result => {
                     this.loading = false;
                     if (result['message'] === 'success') {
                         this.dialogVisible = false;
                         this.nicknames.push(JSON.parse(JSON.stringify(this.newNickname)));
-                        this.newNickname.username = '';
+                        this.newNickname.address = '';
                         this.newNickname.nickname = '';
+                    } else if (result['message'] === 'duplicate') {
+                        this.$alert('地址已存在');
                     } else {
-                        this.$alert('添加失败，原因：' + result);
+                        this.$alert('添加失败，原因：' + result['message']);
                     }
                 })
+            },
+            cryptNote() {
+                this.$prompt('输入密码', '', {
+                    confirmButtonText: '加密',
+                    cancelButtonText: '取消'
+                }).then(({ value }) => {
+                    this.form.note = crypt(value, this.form.note);
+                }).catch((err) => {this.$message.error(JSON.stringify(err))});
             }
         }
     }

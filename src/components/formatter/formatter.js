@@ -7,10 +7,10 @@ export const statusList = [
     { text: '已出账', value: 3 },
     { text: '等待变更责任人', value: 4 },
     { text: '已变更责任人', value: 5 },
-    { text: '等待转让权利', value: 6 },
-    { text: '权利已转让', value: 7 },
-    { text: '等待变更债权人', value: 8 },
-    { text: '已变更债权人', value: 9 },
+    { text: '等待变更债权人', value: 6 },
+    { text: '交易已转移', value: 7 },
+    { text: '等待转让权利', value: 8 },
+    { text: '权利已转让', value: 9 },
     { text: '等待转让责任', value: 10 },
     { text: '责任已转让', value: 11 },
     { text: '等待责任被转让', value: 12 },
@@ -20,8 +20,7 @@ export const statusList = [
     { text: '等待结算', value: 16 },
     { text: '已结算', value: 17 },
     { text: '等待还款', value: 18 },
-    { text: '已还款', value: 19 },
-    { text: '交易已转移', value: 20 }
+    { text: '已还款', value: 19 }
 ];
 
 export function formatDate(str) {
@@ -55,7 +54,52 @@ export function formatTime(str) {
 }
 
 export function formatStatus(transaction) {
-    if (transaction['obligee'] === store.state.username) {
+    if (transaction['obligor'] === store.state.address) {
+        if (!transaction['verified']) return '等待出账';
+        switch (transaction['transfer']) {
+            case 2:
+                if (transaction['transferVerified']) {
+                    return '交易已转移';
+                } else {
+                    return '等待变更债权人';
+                }
+            case 0:
+                if (transaction['settle']) {
+                    if (transaction['settleVerified']) {
+                        return '已还款';
+                    } else {
+                        return '等待还款';
+                    }
+                }
+
+                return '已出账';
+            case 1:
+                if (transaction['transferVerified']) {
+                    return '责任已转让';
+                } else {
+                    return '等待转让责任';
+                }
+            default:
+                return '错误';
+        }
+    } else if (transaction['verified']
+        && transaction['transfer'] === 1
+        && transaction['transferTo'] === store.state.address) {
+
+        if (transaction['transferVerified']) {
+            if (transaction['settle']) {
+                if (transaction['settleVerified']) {
+                    return '已还款';
+                } else {
+                    return '等待还款';
+                }
+            } else {
+                return '责任被转让';
+            }
+        }
+
+        return '等待责任被转让';
+    } else {
         if (!transaction['verified']) return '等待认证';
         switch (transaction['transfer']) {
             case 1:
@@ -90,57 +134,10 @@ export function formatStatus(transaction) {
             default:
                 return '错误';
         }
-    } else if (transaction['obligor'] === store.state.username) {
-        if (!transaction['verified']) return '等待出账';
-        switch (transaction['transfer']) {
-            case 2:
-                if (!transaction['transferVerified']) {
-                    return '等待变更债权人';
-                } else {
-                    return '交易已转移';
-                }
-            case 0:
-                if (transaction['settle']) {
-                    if (transaction['settleVerified']) {
-                        return '等待还款';
-                    } else {
-                        return '已还款';
-                    }
-                }
-
-                return (transaction['transfer'] === 0) ? '已出账' : '已变更债权人';
-            case 1:
-                if (transaction['transferVerified']) {
-                    return '责任已转让';
-                } else {
-                    return '等待转让责任';
-                }
-            default:
-                return '错误';
-        }
-    } else if (transaction['verified']
-        && transaction['transfer'] === 1
-        && transaction['transferTo'] === store.state.username) {
-
-        if (transaction['transferVerified']) {
-            if (transaction['settle']) {
-                if (transaction['settleVerified']) {
-                    return '等待还款';
-                } else {
-                    return '已还款';
-                }
-            } else {
-                return '责任被转让';
-            }
-        }
-
-        return '等待责任被转让';
-    } else {
-        return '无关';
     }
 }
 
-export function transactionDetail(transaction) {
+export function transactionDetail(transaction, decryptedNote) {
     if (!transaction || !transaction.datetime) return [];
     let transfer;
     switch (transaction.transfer) {
@@ -159,20 +156,21 @@ export function transactionDetail(transaction) {
     }
     return [
         { title: '债务人', content: transaction['obligor'] },
+        { title: '债务人名称', content: transaction['obligorNickname'] },
         { title: '债权人', content: transaction['obligee'] },
+        { title: '债权人名称', content: transaction['obligeeNickname'] },
         { title: '交易时间', content: formatTime(transaction['datetime']) },
         { title: '金额', content: transaction['amount'].toString() },
         { title: '银行认证', content: transaction['verified'] ? '是' : '否' },
         { title: '转让', content: transfer },
         { title: '转让给', content: transaction['transferTo'] },
-        { title: '转让时间', content: transaction['transferDatetime'] !== '' ? formatTime(transaction['transferDatetime']) : '' },
+        { title: '转让给名称', content: transaction['transferToNickname'] },
         { title: '转让已认证', content: transaction['transferVerified'] ? '是' : '否' },
         { title: '贴现', content: transaction['discount'] ? '是' : '否' },
-        { title: '贴现时间', content: transaction['discountDatetime'] !== '' ? formatTime(transaction['discountDatetime']) : '' },
         { title: '贴现已认证', content: transaction['discountVerified'] ? '是' : '否' },
         { title: '结算', content: transaction['settle'] ? '是' : '否' },
-        { title: '结算时间', content: transaction['settleDatetime'] !== '' ? formatTime(transaction['settleDatetime']) : '' },
         { title: '结算已认证', content: transaction['settleVerified'] ? '是' : '否' },
-        { title: '备注', content: transaction['note'] }
+        { title: '备注', content: transaction['note'] },
+        { title: '解密备注', content: decryptedNote }
     ];
 }

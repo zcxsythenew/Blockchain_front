@@ -3,25 +3,23 @@ import {template} from "@/mock/transactions";
 import store from "@/store";
 
 function getTransfers(transferred) {
-    const data = Mock.mock({'arr|850-950': template});
+    const data = Mock.mock({'arr|100-150': template});
     let res = [];
     let counter = 0;
     let userValid, statusValid;
     for (let i in data['arr']) {
         if (!data['arr'].hasOwnProperty(i)) continue;
 
-        userValid = data['arr'][i]['obligee'] === store.state.username
-            || data['arr'][i]['obligor'] === store.state.username
-            || (transferred && data['arr'][i]['transfer'] === 1 && data['arr'][i]['transferTo'] === store.state.username);
+        userValid = data['arr'][i]['obligee'] === store.state.address
+            || data['arr'][i]['obligor'] === store.state.address
+            || (transferred && data['arr'][i]['transfer'] === 1 && data['arr'][i]['transferTo'] === store.state.address);
 
         statusValid = !!(data['arr'][i]['verified']
             && ((data['arr'][i]['transfer'] === 0) === !transferred)
             && (!data['arr'][i]['discount'] || transferred)
             && (!data['arr'][i]['settle'] || transferred));
 
-        if (transferred) statusValid = statusValid && data['arr'][i]['transferDatetime'] !== '';
-
-        if (userValid && statusValid) res.push({
+        if ((userValid || store.state.admin) && statusValid) res.push({
             id: (counter++).toString(),
             ...data['arr'][i]
         });
@@ -64,7 +62,10 @@ function getTransfers(transferred) {
             'settleDatetime': ''
         });
     }
-    return res;
+    return {
+        message: "success",
+        data: res
+    };
 }
 
 export default function response() {
@@ -73,4 +74,15 @@ export default function response() {
 
 export function previousTransfers() {
     return getTransfers(true);
+}
+
+export function adminTransfers() {
+    const msg = getTransfers(true);
+    let count = 0;
+    for (let i in msg.data) {
+        if (!msg.data.hasOwnProperty(i)) continue;
+        msg.data[i].transferId = Math.floor(count / 2);
+        count++;
+    }
+    return msg;
 }

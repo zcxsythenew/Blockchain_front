@@ -1,8 +1,11 @@
 export default function response() {
-    return [
-        { nickname: '银行', username: '1' },
-        { nickname: '车企', username: '2' },
-        { nickname: '轮胎', username: '3' },
-        { nickname: '轮毂', username: '4' },
-    ]
+    return {
+        "message": "success",
+        "data": [
+            { nickname: '银行', address: '1' },
+            { nickname: '车企', address: '2' },
+            { nickname: '轮胎', address: '3' },
+            { nickname: '轮毂', address: '4' },
+        ]
+    }
 }
