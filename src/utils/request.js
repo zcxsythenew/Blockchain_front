@@ -2,7 +2,7 @@ import axios from 'axios'
 import qs from 'qs'
 
 const service = axios.create({
-    baseURL: 'http://47.93.212.155:8080/',
+    baseURL: '/data/',
     timeout: 30000,
 });
 
