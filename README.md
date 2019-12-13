@@ -10,22 +10,25 @@ axios 数据请求接口
 
 mock 假数据生成接口
 
-crypt 数据加密
+crypto 数据加密
 
 Element UI 组件库
 
 ## 项目搭建
-```
+
+```shell
 npm install
 ```
 
 ## 编译并支持开发时热重载
-```
+
+```shell
 npm run serve
 ```
 
 ## 编译为静态资源
-```
+
+```shell
 npm run build
 ```
 
